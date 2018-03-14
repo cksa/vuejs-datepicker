@@ -54,9 +54,23 @@
                 v-for="day in days"
                 :key="day.timestamp"
                 track-by="timestamp"
-                v-bind:class="dayClasses(day)"
+                :class="[dayClasses(day), showTime?(cacheDay&&cacheDay.date===day.date?'active':''):'']"
                 @click="selectDate(day)">{{ day.date }}</span>
           </div>
+          <footer v-if="showTime" class="datetime">
+            <select v-model="hour">
+              <option v-for="el in hours" :key="el" :value="el">{{ el }}</option>
+            </select>
+            <span>:</span>
+            <select v-model="minute">
+              <option v-for="el in minutes" :key="el" :value="el">{{ el }}</option>
+            </select>
+            <span>:</span>
+            <select v-model="second">
+              <option v-for="el in seconds" :key="el" :value="el">{{ el }}</option>
+            </select>
+            <span class="btn btn-default" @click="selectDateTime">确定</span>
+          </footer>
       </div>
     </template>
 
@@ -157,6 +171,10 @@ export default {
     maximumView: {
       type: String,
       default: 'year'
+    },
+    showTime: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
@@ -183,7 +201,14 @@ export default {
       /*
        * Positioning
        */
-      calendarHeight: 0
+      calendarHeight: 0,
+      hours: [],
+      hour: '00',
+      minutes: [],
+      minute: '00',
+      seconds: [],
+      second: '00',
+      cacheDay: null
     }
   },
   watch: {
@@ -432,10 +457,23 @@ export default {
         this.$emit('selectedDisabled', day)
         return false
       }
+      if (this.showTime) {
+        this.cacheDay = day
+        return false
+      }
       this.setDate(day.timestamp)
       if (!this.isInline) {
         this.close(true)
       }
+    },
+    selectDateTime () {
+      if (this.cacheDay) {
+        const date = DateUtils.formatDate(new Date(this.cacheDay.timestamp), 'yyyy/MM/dd')
+        const datetime = `${date} ${this.hour}:${this.minute}:${this.second}`
+        this.setDate(new Date(datetime) - 0)
+        // this.cacheDay = null
+      }
+      this.close(true)
     },
     /**
      * @param {Object} month
@@ -851,6 +889,36 @@ export default {
       if (this.isInline) {
         this.setInitialView()
       }
+    },
+    setTime (d) {
+      this.hour = ('0' + d.getHours()).slice(-2)
+      this.minute = ('0' + d.getMinutes()).slice(-2)
+      this.second = ('0' + d.getSeconds()).slice(-2)
+    }
+  },
+  created () {
+    for (let i = 0; i < 60; i++) {
+      const v = String(i).padStart(2, 0)
+      this.minutes.push(v)
+      this.seconds.push(v)
+    }
+    for (let j = 0; j < 24; j++) {
+      this.hours.push(String(j).padStart(2, 0))
+    }
+
+    if (this.showTime && !/h+.*m+/.test(this.format)) {
+      this.format = 'yyyy/MM/dd hh:mm:ss'
+    }
+
+    if (this.showTime) {
+      const initDate = new Date(this.value)
+      if (DateUtils.isValidDate(initDate)) {
+        const d = initDate.getDate()
+        this.cacheDay = this.days.find(el => el.date === d)
+        this.setTime(initDate)
+      } else {
+        this.setTime(new Date())
+      }
     }
   },
   mounted () {
@@ -859,9 +927,17 @@ export default {
 }
 </script>
 
-<style lang="stylus">
+<style lang="stylus" scoped>
 
 $width = 300px
+
+.datetime
+    padding 0.5rem 0.5rem 1rem
+    select
+        display inline-block
+        width auto
+    span.btn
+        float right
 
 .rtl
     direction:rtl
@@ -943,8 +1019,11 @@ $width = 300px
             cursor pointer
             &:hover
                 border 1px solid #4bd
+        &.active
+            background #fff9b3
         &.selected
             background #4bd
+            color #fff
             &:hover
                 background #4bd
             &.highlighted

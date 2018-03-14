@@ -12,6 +12,14 @@
     </div>
 
     <div class="example">
+      <h3>Datepicker with Time</h3>
+      <datepicker placeholder="Select Date and Time" wrapper-class="my-datapicker" :show-time="true" v-model="datetime" format="yyyy/MM/dd hh:mm:ss"/>
+      <code>
+          &lt;datepicker placeholder="Select Date"&gt;&lt;/datepicker&gt;
+      </code>
+    </div>
+
+    <div class="example">
       <h3>Bootstrap styled datepicker</h3>
       <datepicker
         :bootstrapStyling="true"
@@ -279,7 +287,8 @@ export default {
       state: state,
       language: 'en',
       languages: DateLanguages.translations,
-      vModelExample: null
+      vModelExample: null,
+      datetime: '2018/03/01 12:30:00'
     }
   },
   methods: {

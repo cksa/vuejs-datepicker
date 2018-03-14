@@ -103,11 +103,14 @@ export default {
    * @param {Object}
    * @return {String}
    */
-  formatDate (date, format, translation) {
+  formatDate (date = new Date(), format, translation) {
     translation = (!translation) ? DateLanguages.translations.en : translation
     let year = date.getFullYear()
     let month = date.getMonth() + 1
     let day = date.getDate()
+    let hour = date.getHours()
+    let minute = date.getMinutes()
+    let second = date.getSeconds()
     let str = format
       .replace(/dd/, ('0' + day).slice(-2))
       .replace(/d/, day)
@@ -119,6 +122,12 @@ export default {
       .replace(/M(?!a|ä|e)/, month)
       .replace(/su/, this.getNthSuffix(date.getDate()))
       .replace(/D(?!e|é|i)/, this.getDayNameAbbr(date, translation.days))
+      .replace(/hh/, ('0' + hour).slice(-2))
+      .replace(/h/, hour)
+      .replace(/mm/, ('0' + minute).slice(-2))
+      .replace(/m/, minute)
+      .replace(/ss/, ('0' + second).slice(-2))
+      .replace(/s/, second)
     return str
   },
 
